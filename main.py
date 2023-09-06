@@ -1,6 +1,7 @@
 import pickle
 import tkinter as tk
 import pyttsx3
+import datetime
 from tkinter import Text, Scrollbar
 
 
@@ -9,7 +10,11 @@ class Dictionary:
         self.dictionary = self.loadDict()
         self.menu_window = None
         self.function_frame = None
+        self.log_file = 'LOG.txt'
 
+    def write_log(self, content):
+        with open(self.log_file, mode='a', encoding='utf-8') as file:
+            file.write(f'{content}\n')
 
     def loadDict(self):
         try:
@@ -105,8 +110,17 @@ class Dictionary:
         back_button = tk.Button(search_frame, text="Back to Home", command=self.back_to_home, width=20)
         back_button.pack(anchor='center')
 
-        self.result_label = tk.Label(self.function_frame, text="", justify='left', font=('Times', 13))
-        self.result_label.pack()
+        # Tạo thanh cuộn
+        scrollbar = Scrollbar(search_frame)
+        scrollbar.pack(side='right', fill='y')
+
+        # Tạo một widget văn bản để hiển thị kết quả và liên kết với thanh cuộn
+        self.result_text = Text(search_frame, wrap=tk.WORD, yscrollcommand=scrollbar.set, font=('Times', 13))
+        self.result_text.pack(fill='both', expand=True, padx=5, pady=5)
+        scrollbar.config(command=self.result_text.yview)
+
+        #self.result_label = tk.Label(self.function_frame, text="", justify='left', font=('Times', 13))
+        #self.result_label.pack()
 
     def open_add(self):
         self.clear_function_frame()
@@ -164,7 +178,7 @@ class Dictionary:
     #            # Sử dụng pyttsx3 để phát âm
     #            self.engine.say(word)
     #            self.engine.runAndWait()
-#
+
     #        except Exception as e:
     #            self.result_label.config(text="Error while pronouncing.")
 
@@ -191,16 +205,27 @@ class Dictionary:
     def searchWord(self):
         word = self.search_entry.get().lower()
         if word not in self.dictionary:
-            self.result_label.config(text=f'{word} not found!')
+            self.result_text.config(state='normal')  # Cho phép chỉnh sửa nội dung trong Text widget
+            self.result_text.delete('1.0', tk.END)  # Xóa toàn bộ nội dung trong Text widget
+            self.result_text.insert(tk.END, f'{word} not found!')
+            self.result_text.config(state='disabled')  # Vô hiệu hóa chỉnh sửa nội dung trong Text widget
         else:
-            self.result_label.config(text=self.dictionary[word])
+            self.result_text.config(state='normal')  # Cho phép chỉnh sửa nội dung trong Text widget
+            self.result_text.delete('1.0', tk.END)  # Xóa toàn bộ nội dung trong Text widget
+            self.result_text.insert(tk.END, self.dictionary[word])
+            self.result_text.config(state='disabled')  # Vô hiệu hóa chỉnh sửa nội dung trong Text widget
+
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        self.write_log(f'{timestamp}---Search: {word}')
             
 
     def addNewWords(self):
         new_word = self.new_word_entry.get().lower()
         keys = self.dictionary.keys()
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         if new_word in keys:
             self.result_label.config(text='This word already exists, please choose another word!')
+            self.write_log(f"{timestamp}---(Add) '{new_word}' already exists")
         else:
             meaning = self.meaning_entry.get()
             self.dictionary[new_word] = meaning
@@ -211,12 +236,16 @@ class Dictionary:
             with open('dictionary.pkl', 'wb') as file:
                 pickle.dump(content, file)
             self.result_label.config(text=f'New word: {new_word}\nMeaning: {meaning}\n')
+            self.write_log(f'{timestamp}---Add: {new_word}')
+            
 
     def deleteWord(self):
         word = self.delete_entry.get().lower().strip()
         keys = self.dictionary.keys()
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         if word not in keys:
             self.result_label.config(text='Not found, please choose another word!', font=(24))
+            self.write_log(f"{timestamp}---(Delete) '{word}' Not found!")
         else:
             with open('dictionary.pkl', 'rb') as file:
                 content = pickle.load(file)
@@ -238,6 +267,7 @@ class Dictionary:
             with open('dictionary.pkl', 'wb') as file:
                 pickle.dump(content, file)
             self.result_label.config(text=f'Deleted {word} successfully!')
+            self.write_log(f'{timestamp}---Delete: {word}')
 
 
     def menu(self):
