@@ -119,8 +119,6 @@ class Dictionary:
         self.result_text.pack(fill='both', expand=True, padx=5, pady=5)
         scrollbar.config(command=self.result_text.yview)
 
-        #self.result_label = tk.Label(self.function_frame, text="", justify='left', font=('Times', 13))
-        #self.result_label.pack()
 
     def open_add(self):
         self.clear_function_frame()
@@ -171,17 +169,6 @@ class Dictionary:
         # Hiển thị lại trang chính (menu)
         self.create_menu()
 
-    #def pronounce(self):
-    #    word = self.search_entry.get().lower()
-    #    if word:
-    #        try:
-    #            # Sử dụng pyttsx3 để phát âm
-    #            self.engine.say(word)
-    #            self.engine.runAndWait()
-
-    #        except Exception as e:
-    #            self.result_label.config(text="Error while pronouncing.")
-
     def pronounce(self):
         word = self.search_entry.get().lower()
         if word:
@@ -217,7 +204,7 @@ class Dictionary:
 
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         self.write_log(f'{timestamp}---Search: {word}')
-            
+
 
     def addNewWords(self):
         new_word = self.new_word_entry.get().lower()
